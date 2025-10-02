@@ -102,7 +102,7 @@
         // Image data is embedded as Base64 to keep the game in a single file
         goodJinnImg.src = "W-genie.png";
         evilJinnImg.src = "L-genie.png";
-        goldenJinnImg.src = "G-genie.png"; // <-- PASTE YOUR GOLDEN JINN BASE64 STRING HERE
+        goldenJinnImg.src = "G-genie.png";
 
         // --- GAME STATE VARIABLES ---
         let gameState = 'menu';
@@ -512,15 +512,22 @@
             ctx.save();
             ctx.textAlign = 'left'; ctx.font = `24px ${THEME.fontFamily}`;
             ctx.fillStyle = THEME.textColor; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5;
-            ctx.fillText(`Score: ${score}`, 20, 40);
-            ctx.textAlign = 'center'; ctx.fillText(`Best: ${bestScore}`, canvas.width / 2, 40);
+
+            // --- MODIFIED LINES ---
+            // Increased all Y-values to bring the HUD elements lower
+            ctx.fillText(`Score: ${score}`, 20, 90);
+            ctx.textAlign = 'center';
+            ctx.fillText(`Best: ${bestScore}`, canvas.width / 2, 90);
             ctx.textAlign = 'right'; ctx.font = `bold 36px ${THEME.fontFamily}`;
             ctx.fillStyle = timer < 10 ? THEME.rubyColor : THEME.goldColor;
-            ctx.fillText(`${Math.ceil(timer)}`, canvas.width - 30, 50);
+            ctx.fillText(`${Math.ceil(timer)}`, canvas.width - 30, 100);
             if (comboStreak > 1) {
                 ctx.textAlign = 'center'; ctx.font = `bold 28px ${THEME.fontFamily}`;
-                ctx.fillStyle = THEME.goldColor; ctx.fillText(`Streak: ${comboStreak}x`, canvas.width / 2, 80);
+                ctx.fillStyle = THEME.goldColor;
+                ctx.fillText(`Streak: ${comboStreak}x`, canvas.width / 2, 130);
             }
+            // --- END OF MODIFIED LINES ---
+
             ctx.restore();
         }
 

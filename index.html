@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Catch the Jinn</title>
+    <title>Catch the Genie</title>
     <style>
         /* The font is still loaded via CSS for the canvas to use */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
@@ -70,11 +70,11 @@
 
         // --- GAME CONFIGURATION CONSTANTS ---
         const GAME_DURATION = 60;
-        const GOOD_JINN_POINTS = 10;
-        const EVIL_JINN_POINTS = -15;
-        const GOLDEN_JINN_POINTS = 50;
+        const GOOD_GENIE_POINTS = 10;
+        const EVIL_GENIE_POINTS = -15;
+        const GOLDEN_GENIE_POINTS = 50;
         const GOLDEN_CHANCE = 0.08;
-        const GOLDEN_JINN_SCALE = 0.6;
+        const GOLDEN_GENIE_SCALE = 0.6;
         const INITIAL_SPAWN_INTERVAL = 650;
         const FINAL_SPAWN_INTERVAL = 200;
         const EVIL_CHANCE_START = 0.25;
@@ -85,9 +85,9 @@
         const MAX_PARTICLES = 200;
 
         // --- IMAGE LOADING ---
-        const goodJinnImg = new Image();
-        const evilJinnImg = new Image();
-        const goldenJinnImg = new Image(); // New image for the golden jinn
+        const goodGenieImg = new Image();
+        const evilGenieImg = new Image();
+        const goldenGenieImg = new Image(); // New image for the golden genie
         let imagesLoaded = 0;
         const totalImages = 3;
 
@@ -95,33 +95,33 @@
             imagesLoaded++;
         }
 
-        goodJinnImg.onload = onImageLoad;
-        evilJinnImg.onload = onImageLoad;
-        goldenJinnImg.onload = onImageLoad;
+        goodGenieImg.onload = onImageLoad;
+        evilGenieImg.onload = onImageLoad;
+        goldenGenieImg.onload = onImageLoad;
 
         // Image data is embedded as Base64 to keep the game in a single file
-        goodJinnImg.src = "W-genie.png";
-        evilJinnImg.src = "L-genie.png";
-        goldenJinnImg.src = "G-genie.png";
+        goodGenieImg.src = "W-genie.png";
+        evilGenieImg.src = "L-genie.png";
+        goldenGenieImg.src = "G-genie.png";
 
         // --- GAME STATE VARIABLES ---
         let gameState = 'menu';
         let score = 0;
-        let bestScore = localStorage.getItem('jinnCatcherBestScore') || 0;
+        let bestScore = localStorage.getItem('genieCatcherBestScore') || 0;
         let timer = GAME_DURATION;
         let lastTime = 0;
         let spawnTimer = 0;
         let backgroundOffsetX = 0;
 
         // Gameplay Stats
-        let goodJinnClicks = 0;
+        let goodGenieClicks = 0;
         let totalClicks = 0;
         let comboStreak = 0;
         let lastGoodClickTime = 0;
         let bonusActive = false;
 
         // Object pools
-        let jinn = [];
+        let genie = [];
         let particles = [];
         let floatingTexts = [];
         let dunes = [];
@@ -172,11 +172,11 @@
         }
 
         // --- GAME OBJECT FACTORIES ---
-        function createJinn() {
+        function createGenie() {
             const progress = 1 - (timer / GAME_DURATION);
             const isEvil = Math.random() < lerp(EVIL_CHANCE_START, EVIL_CHANCE_END, progress);
             const isGolden = !isEvil && Math.random() < GOLDEN_CHANCE;
-            const jinnType = isGolden ? 'golden' : (isEvil ? 'evil' : 'good');
+            const genieType = isGolden ? 'golden' : (isEvil ? 'evil' : 'good');
 
             let startPos, endPos, controlPos;
             const padding = 100; // Increased padding to ensure they start well off-screen
@@ -216,13 +216,13 @@
             let speed = rand(0.0003, 0.0005);
             if (isGolden) speed *= 1.8;
 
-            jinn.push({
+            genie.push({
                 id: Date.now() + Math.random(),
                 startPos, controlPos, endPos,
                 x: startPos.x, y: startPos.y,
                 pathProgress: 0,
                 speed,
-                type: jinnType,
+                type: genieType,
                 age: 0,
                 visualAngle: rand(-0.2, 0.2),
                 scale: 0.1, alpha: 0
@@ -286,39 +286,39 @@
         }
 
         function handleGameClick(clickPos) {
-            let clickedJinn = null;
+            let clickedGenie = null;
             totalClicks++;
-            for (let i = jinn.length - 1; i >= 0; i--) {
-                const j = jinn[i];
+            for (let i = genie.length - 1; i >= 0; i--) {
+                const j = genie[i];
                 const isGolden = j.type === 'golden';
 
                 const dynamicClickRadius = (canvas.width / 10) / 2;
-                const clickRadius = dynamicClickRadius * (isGolden ? GOLDEN_JINN_SCALE : 1);
+                const clickRadius = dynamicClickRadius * (isGolden ? GOLDEN_GENIE_SCALE : 1);
 
                 if (Math.hypot(clickPos.x - j.x, clickPos.y - j.y) < clickRadius * j.scale) {
-                    clickedJinn = j;
+                    clickedGenie = j;
                     break;
                 }
             }
 
-            if (clickedJinn) {
+            if (clickedGenie) {
                 let pointsAwarded = 0;
-                if (clickedJinn.type === 'evil') {
-                    score += EVIL_JINN_POINTS;
-                    createFloatingText(`${EVIL_JINN_POINTS}`, clickedJinn.x, clickedJinn.y, THEME.rubyColor);
+                if (clickedGenie.type === 'evil') {
+                    score += EVIL_GENIE_POINTS;
+                    createFloatingText(`${EVIL_GENIE_POINTS}`, clickedGenie.x, clickedGenie.y, THEME.rubyColor);
                     playSound('evil');
                     comboStreak = 0; bonusActive = false;
                 } else {
-                    goodJinnClicks++;
-                    if (clickedJinn.type === 'golden') {
-                        pointsAwarded = GOLDEN_JINN_POINTS;
-                        createFloatingText(`+${pointsAwarded}`, clickedJinn.x, clickedJinn.y, THEME.goldColor);
+                    goodGenieClicks++;
+                    if (clickedGenie.type === 'golden') {
+                        pointsAwarded = GOLDEN_GENIE_POINTS;
+                        createFloatingText(`+${pointsAwarded}`, clickedGenie.x, clickedGenie.y, THEME.goldColor);
                     } else {
-                        pointsAwarded = GOOD_JINN_POINTS * (bonusActive ? STREAK_BONUS_MULTIPLIER : 1);
-                        createFloatingText(`+${pointsAwarded.toFixed(0)}`, clickedJinn.x, clickedJinn.y, THEME.emeraldColor);
+                        pointsAwarded = GOOD_GENIE_POINTS * (bonusActive ? STREAK_BONUS_MULTIPLIER : 1);
+                        createFloatingText(`+${pointsAwarded.toFixed(0)}`, clickedGenie.x, clickedGenie.y, THEME.emeraldColor);
                     }
                     score += pointsAwarded;
-                    playSound(clickedJinn.type === 'golden' ? 'bonus' : 'good');
+                    playSound(clickedGenie.type === 'golden' ? 'bonus' : 'good');
                     const now = Date.now();
                     comboStreak = (now - lastGoodClickTime < STREAK_TIMEOUT) ? comboStreak + 1 : 1;
                     lastGoodClickTime = now;
@@ -328,7 +328,7 @@
                         createFloatingText(`x${STREAK_BONUS_MULTIPLIER} BONUS!`, canvas.width / 2, 100, THEME.goldColor);
                     }
                 }
-                jinn = jinn.filter(j => j.id !== clickedJinn.id);
+                genie = genie.filter(j => j.id !== clickedGenie.id);
             } else {
                 comboStreak = 0; bonusActive = false;
             }
@@ -347,11 +347,11 @@
 
             spawnTimer -= dt;
             if (spawnTimer <= 0) {
-                createJinn();
+                createGenie();
                 spawnTimer = lerp(INITIAL_SPAWN_INTERVAL, FINAL_SPAWN_INTERVAL, 1 - (timer / GAME_DURATION));
             }
 
-            jinn.forEach(j => {
+            genie.forEach(j => {
                 j.age += dt;
                 j.visualAngle = Math.sin(j.age / 200) * 0.3;
                 j.pathProgress += j.speed * dt;
@@ -377,7 +377,7 @@
             particles.forEach(p => { p.age += dt; p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; });
             floatingTexts.forEach(ft => ft.age += dt);
 
-            jinn = jinn.filter(j => j.pathProgress < 1);
+            genie = genie.filter(j => j.pathProgress < 1);
             particles = particles.filter(p => p.age < p.lifespan);
             floatingTexts = floatingTexts.filter(ft => ft.age < ft.lifespan);
 
@@ -429,15 +429,15 @@
             dunes.forEach(dune => drawDuneLayer(backgroundOffsetX * dune.parallaxFactor, dune.y, dune.color, dune.amplitude, dune.segmentWidth));
         }
 
-        function drawJinn() {
-            if (imagesLoaded < 2) return; // Wait for at least good/evil jinn
+        function drawGenie() {
+            if (imagesLoaded < 2) return; // Wait for at least good/evil genie
 
-            jinn.forEach(j => {
+            genie.forEach(j => {
                 ctx.save();
                 ctx.translate(j.x, j.y);
 
                 const isGolden = j.type === 'golden';
-                const scale = j.scale * (isGolden ? GOLDEN_JINN_SCALE : 1);
+                const scale = j.scale * (isGolden ? GOLDEN_GENIE_SCALE : 1);
 
                 if (colorAssistEnabled) {
                     ctx.save();
@@ -456,11 +456,11 @@
                 ctx.scale(scale, scale);
                 ctx.rotate(j.visualAngle);
 
-                let imgToDraw = j.type === 'evil' ? evilJinnImg : goodJinnImg;
-                let useGoldenFallback = isGolden && !(goldenJinnImg.complete && goldenJinnImg.naturalHeight !== 0);
+                let imgToDraw = j.type === 'evil' ? evilGenieImg : goodGenieImg;
+                let useGoldenFallback = isGolden && !(goldenGenieImg.complete && goldenGenieImg.naturalHeight !== 0);
 
                 if (isGolden && !useGoldenFallback) {
-                    imgToDraw = goldenJinnImg;
+                    imgToDraw = goldenGenieImg;
                 }
 
                 const baseSize = canvas.width / 10;
@@ -590,8 +590,8 @@
         function drawMenu() {
             defineMenuUI();
             ctx.fillStyle = THEME.darkUI; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            drawText('Catch the Jinn', canvas.width / 2, canvas.height * 0.2, 70, THEME.goldColor);
-            wrapText('Click the good jinn to score. Avoid the evil jinn. Golden jinn are worth more! You have 60 seconds.', canvas.width / 2, canvas.height * 0.35, 450, 30, 20, THEME.textColor);
+            drawText('Catch the Genie', canvas.width / 2, canvas.height * 0.2, 70, THEME.goldColor);
+            wrapText('Click the good genie to score. Avoid the evil genie. Golden genie are worth more! You have 60 seconds.', canvas.width / 2, canvas.height * 0.35, 450, 30, 20, THEME.textColor);
             drawButton(uiElements.playBtn, 'Play');
             drawToggle(uiElements.hintsToggle, 'Hints (Stronger Colors)', hintsEnabled);
             drawToggle(uiElements.assistToggle, 'Color Assist (Outlines)', colorAssistEnabled);
@@ -608,10 +608,10 @@
             defineGameOverUI();
             ctx.fillStyle = THEME.darkUI; ctx.fillRect(0, 0, canvas.width, canvas.height);
             drawText('Time is Up!', canvas.width / 2, canvas.height * 0.2, 60, THEME.goldColor);
-            const accuracy = totalClicks > 0 ? ((goodJinnClicks / totalClicks) * 100).toFixed(1) : 0;
+            const accuracy = totalClicks > 0 ? ((goodGenieClicks / totalClicks) * 100).toFixed(1) : 0;
             drawText(`Final Score: ${score}`, canvas.width / 2, canvas.height * 0.35, 30, THEME.textColor);
             drawText(`Best Score: ${bestScore}`, canvas.width / 2, canvas.height * 0.45, 30, THEME.textColor);
-            drawText(`Jinn Caught: ${goodJinnClicks}`, canvas.width / 2, canvas.height * 0.55, 30, THEME.textColor);
+            drawText(`Genie Caught: ${goodGenieClicks}`, canvas.width / 2, canvas.height * 0.55, 30, THEME.textColor);
             drawText(`Accuracy: ${accuracy}%`, canvas.width / 2, canvas.height * 0.65, 30, THEME.textColor);
             drawButton(uiElements.playAgainBtn, 'Play Again');
         }
@@ -620,8 +620,8 @@
         function startGame() {
             initAudio();
             gameState = 'playing'; score = 0; timer = GAME_DURATION;
-            jinn = []; particles = []; floatingTexts = [];
-            spawnTimer = 500; goodJinnClicks = 0; totalClicks = 0;
+            genie = []; particles = []; floatingTexts = [];
+            spawnTimer = 500; goodGenieClicks = 0; totalClicks = 0;
             comboStreak = 0; lastGoodClickTime = 0; backgroundOffsetX = 0;
         }
 
@@ -629,7 +629,7 @@
             gameState = 'gameover';
             if (score > bestScore) {
                 bestScore = score;
-                localStorage.setItem('jinnCatcherBestScore', bestScore);
+                localStorage.setItem('genieCatcherBestScore', bestScore);
             }
         }
 
@@ -646,7 +646,7 @@
 
             if (gameState === 'playing' || gameState === 'gameover') {
                 drawParticles();
-                drawJinn();
+                drawGenie();
                 drawFloatingTexts();
             }
 
